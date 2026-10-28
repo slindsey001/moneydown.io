@@ -1,0 +1,52 @@
+name: Weekly update
+
+on:
+  schedule:
+    - cron: "0 15 * * 2"   # Tuesdays 11am Eastern (15:00 UTC), after Monday Night Football
+  workflow_dispatch:         # "Run workflow" button in the Actions tab
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install fonts and ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-inter && fc-cache -f
+      - name: Install Python packages
+        run: pip install -r requirements.txt
+      - name: Build charts, videos and site
+        run: python update.py
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+      - name: Save charts and videos for social posts
+        uses: actions/upload-artifact@v4
+        with:
+          name: social-charts
+          path: site/charts
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
