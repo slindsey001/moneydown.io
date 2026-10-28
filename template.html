@@ -1,0 +1,379 @@
+<title>{{NAME}}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: one column, a week scoreboard up top, the film-room feature, then a tile wall of charts. Dark-first to match the chart images. */
+:root {
+  color-scheme: dark;
+  --bg: #121311;
+  --surface: #1a1a19;     /* same ground as the chart PNGs, so tiles sit flush */
+  --raised: #22221f;
+  --line: #2e2e2a;
+  --fg: #f0efec;
+  --muted: #a6a59c;
+  --faint: #6f6e66;
+  --accent: #3987e5;      /* home / brand blue */
+  --accent-2: #d95926;    /* away orange, used sparingly */
+  --good: #3987e5;        /* rankings heat: better than average */
+  --bad: #e66767;         /* rankings heat: worse than average */
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --wrap: 1180px;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); padding-inline: 20px; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: var(--wrap); margin-inline: auto; }
+
+/* header */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); margin-inline: -20px; padding-inline: 20px; }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 14px; }
+.mark { font: 700 22px/1 var(--display); letter-spacing: .06em; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+.mark i { width: 22px; height: 14px; background: repeating-linear-gradient(90deg, var(--accent) 0 2px, transparent 2px 6px); }
+nav { display: flex; gap: 22px; font: 500 13px/1 var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+nav a { text-decoration: none; color: var(--muted); }
+nav a:hover { color: var(--fg); }
+
+/* hero */
+.hero { padding-block: 56px 28px; display: grid; gap: 22px; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 700 clamp(56px, 11vw, 120px)/.86 var(--display); text-transform: uppercase; margin: 0; letter-spacing: -.005em; text-wrap: balance; }
+h1 span { color: var(--faint); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 22px; color: var(--muted); font: 500 13px/1.4 var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+.meta b { color: var(--fg); font-weight: 500; }
+
+/* week selector: reads like a down-and-distance marker */
+.weeks { display: flex; flex-wrap: wrap; gap: 6px; }
+.weeks button { font: 600 18px/1 var(--display); letter-spacing: .04em; text-transform: uppercase; color: var(--muted);
+  background: var(--surface); border: 1px solid var(--line); padding: 10px 14px; border-radius: 4px; cursor: pointer; min-width: 64px; }
+.weeks button:hover { color: var(--fg); border-color: var(--faint); }
+.weeks button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+/* yard-line hash divider */
+.hash { height: 14px; margin-block: 8px 40px; background:
+  repeating-linear-gradient(90deg, var(--line) 0 2px, transparent 2px 22px) bottom / 100% 8px no-repeat,
+  linear-gradient(var(--line), var(--line)) bottom / 100% 1px no-repeat; }
+
+section { scroll-margin-top: 80px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+h2 { font: 700 40px/1 var(--display); text-transform: uppercase; margin: 0; letter-spacing: .01em; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.filters button { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+  background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+.filters button[aria-pressed="true"] { color: var(--fg); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+
+/* film room feature */
+.feature { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 36px; align-items: center;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 24px; margin-bottom: 56px; }
+.feature video { width: 100%; aspect-ratio: 9 / 16; border-radius: 6px; background: var(--bg); display: block; max-width: 100%; }
+.feature h3 { font: 700 clamp(34px, 5vw, 52px)/.95 var(--display); text-transform: uppercase; margin: 10px 0 14px; text-wrap: balance; }
+.feature p { color: var(--muted); max-width: 52ch; margin: 0 0 18px; }
+.drive { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; border-top: 1px solid var(--line); max-width: 560px; }
+.drive li { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: 14px; padding-block: 10px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.drive .clk { font: 500 12px/1.6 var(--mono); color: var(--faint); }
+.drive .sw { font: 500 12px/1.6 var(--mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+
+/* tile wall */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 40px 28px; }
+.tile { display: grid; gap: 12px; align-content: start; background: none; border: 0; padding: 0; text-align: left; color: inherit; cursor: zoom-in; font: inherit; }
+.tile .img { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); aspect-ratio: 4 / 5; max-width: 100%; }
+.tile img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .35s ease; }
+.tile:hover .img, .tile:focus-visible .img { border-color: var(--accent); }
+.tile:hover img { transform: scale(1.025); }
+.tag { font: 500 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.tile h4 { font: 700 26px/1 var(--display); text-transform: uppercase; margin: 0; }
+.tile p { margin: 0; color: var(--muted); font-size: 14.5px; }
+
+/* glossary + about */
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 40px; margin-block: 72px 0; }
+dl { margin: 0; display: grid; gap: 18px; }
+dt { font: 600 20px/1.1 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+dt small { font: 500 11px/1 var(--mono); color: var(--faint); letter-spacing: .1em; margin-left: 8px; }
+dd { margin: 4px 0 0; color: var(--muted); font-size: 14.5px; max-width: 60ch; }
+.about p { color: var(--muted); max-width: 58ch; margin: 0 0 14px; }
+footer { border-top: 1px solid var(--line); margin-top: 72px; padding-block: 22px 40px; color: var(--faint); font: 500 12px/1.6 var(--mono); letter-spacing: .04em; }
+
+/* power rankings */
+#rankings { margin-bottom: 64px; }
+.rk-head { display: grid; gap: 10px; }
+.rk-note { color: var(--muted); font-size: 14.5px; max-width: 62ch; margin: -8px 0 20px; }
+.rk-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.rk { width: 100%; border-collapse: separate; border-spacing: 0 2px; font-variant-numeric: tabular-nums; min-width: 760px; }
+.rk th { font: 500 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint);
+  text-align: center; padding: 14px 6px 10px; white-space: nowrap; position: sticky; top: 0; background: var(--surface); }
+.rk th button { all: unset; cursor: pointer; padding: 4px 2px; }
+.rk th button:hover, .rk th button:focus-visible { color: var(--fg); }
+.rk th[aria-sort] button { color: var(--fg); }
+.rk th[aria-sort="descending"] button::after { content: " ↓"; }
+.rk th[aria-sort="ascending"] button::after { content: " ↑"; }
+.rk th.l, .rk td.l { text-align: left; }
+.rk td { padding: 0 2px; height: 34px; text-align: center; font-size: 14px; white-space: nowrap; }
+.rk td.num { font: 500 13px/1 var(--mono); }
+.rk .cell { display: block; margin-inline: 1px; padding: 9px 6px; border-radius: 3px; }
+.rk .cell small { color: var(--muted); font-size: 10.5px; margin-left: 5px; }
+.rk td.pos { font: 700 20px/1 var(--display); width: 44px; padding-left: 16px; text-align: left; }
+.rk td.mv { width: 40px; font: 500 11px/1 var(--mono); color: var(--faint); }
+.rk td.mv.up { color: var(--fg); }
+.rk td.team { font: 700 20px/1 var(--display); letter-spacing: .03em; width: 70px; }
+.rk td.rec { color: var(--muted); font: 500 13px/1 var(--mono); width: 72px; }
+.rk tr:hover td.team, .rk tr:hover td.pos { color: var(--accent); }
+.rk-foot { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; margin-top: 14px; }
+.legend { display: flex; align-items: center; gap: 10px; font: 500 11px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.legend i { width: 140px; height: 8px; border-radius: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--bad) 62%, var(--surface)), var(--surface), color-mix(in srgb, var(--good) 62%, var(--surface))); }
+.more { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg); background: var(--raised);
+  border: 1px solid var(--line); border-radius: 4px; padding: 10px 14px; cursor: pointer; }
+.more:hover { border-color: var(--accent); }
+
+/* lightbox */
+dialog { border: 0; padding: 0; background: transparent; color: var(--fg); max-width: min(96vw, 1100px); width: 100%; }
+dialog::backdrop { background: rgba(8, 8, 7, .88); }
+.lb { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 28px; align-items: end; }
+.lb img { width: 100%; max-height: 86vh; object-fit: contain; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); }
+.lb h4 { font: 700 34px/1 var(--display); text-transform: uppercase; margin: 10px 0 12px; }
+.lb p { color: var(--muted); margin: 0 0 20px; }
+.lb .ctl { display: flex; gap: 8px; }
+.lb .ctl button { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg); background: var(--raised);
+  border: 1px solid var(--line); border-radius: 4px; padding: 10px 12px; cursor: pointer; }
+.lb .ctl button:hover { border-color: var(--accent); }
+.lb .count { font: 500 12px/1 var(--mono); color: var(--faint); margin-top: 14px; }
+
+@media (max-width: 760px) {
+  nav { display: none; }
+  .feature { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 20px; }
+  .feature video { max-width: 320px; margin-inline: auto; }
+  .lb { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding-block: 36px 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .tile img { transition: none; } .tile:hover img { transform: none; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#charts"><i aria-hidden="true"></i>{{NAME_UPPER}}</a>
+    <nav aria-label="Sections"><a href="#rankings">Rankings</a><a href="#charts">Charts</a><a href="#film">Film room</a><a href="#glossary">Glossary</a><a href="#about">About</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div class="eyebrow" id="season-line">2026 season · weekly charts</div>
+    <h1 id="headline">{{NAME}} <span>weekly charts</span></h1>
+    <div class="meta" id="meta"></div>
+    <div class="weeks" id="weeks" role="group" aria-label="Choose a week"></div>
+  </div>
+  <div class="hash" aria-hidden="true"></div>
+
+  <section id="film"></section>
+
+  <section id="rankings">
+    <div class="sec-head"><div class="rk-head"><div class="eyebrow" id="rk-week">Through week 7</div><h2>Power rankings</h2></div></div>
+    <p class="rk-note">All 32 teams ranked by net EPA per play: how much better a team's offense is than the offenses it faces. Season to date, no opinions. Click a column to re-sort.</p>
+    <div class="rk-wrap"><table class="rk" id="rk"></table></div>
+    <div class="rk-foot">
+      <div class="legend"><span>Worse</span><i aria-hidden="true"></i><span>Better than average</span></div>
+      <button type="button" class="more" id="rk-more">Show all 32</button>
+    </div>
+  </section>
+
+  <section id="charts">
+    <div class="sec-head">
+      <h2>The charts</h2>
+      <div class="filters" id="filters" role="group" aria-label="Filter charts"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <div class="cols">
+    <section id="glossary">
+      <div class="sec-head"><h2>Glossary</h2></div>
+      <dl>
+        <div><dt>EPA <small>Expected points added</small></dt><dd>How many points a play added to a team's expected score, given the down, distance and field position. A 5-yard gain on 3rd-and-4 is worth far more than the same 5 yards on 3rd-and-12.</dd></div>
+        <div><dt>CPOE <small>Completion % over expected</small></dt><dd>How often a quarterback completes passes compared with what an average passer would on the same throws, based on depth, location and pressure.</dd></div>
+        <div><dt>Win probability <small>WP</small></dt><dd>A team's chance of winning at any moment, from score, time, field position and timeouts. A play's swing is how far it moved that number.</dd></div>
+        <div><dt>Net EPA <small>Power rankings</small></dt><dd>Offense EPA per play minus the EPA per play the defense allows. Positive means a team outplays its opponents snap for snap. It ignores strength of schedule, so early-season ranks can swing.</dd></div>
+        <div><dt>ATS <small>Against the spread</small></dt><dd>A team's record against the closing betting line. A 7-point favorite that wins by 10 covers; one that wins by 3 does not.</dd></div>
+        <div><dt>Target share</dt><dd>The percentage of a team's pass targets that went to one player. Above 25% usually marks a true No. 1 option.</dd></div>
+        <div><dt>Dropback</dt><dd>Any play where the quarterback drops to pass, including sacks and scrambles, so a QB gets credit or blame for all of them.</dd></div>
+      </dl>
+    </section>
+    <section id="about" class="about">
+      <div class="sec-head"><h2>About</h2></div>
+      <p>{{NAME}} turns every NFL week into a set of charts: who played well, which games swung hardest, and where the targets went. A new set goes up each Tuesday once Monday night is in the books.</p>
+      <p>Everything here is built from nflverse play-by-play data, the same open dataset behind most public football analytics. Charts are regenerated from the source each week, so the numbers always trace back to the plays. Records against the spread use closing lines.</p>
+    </section>
+  </div>
+  <footer>{{NAME}} · {{DOMAIN}} · Data: nflverse play-by-play · Charts generated weekly</footer>
+</main>
+
+<dialog id="lightbox" aria-label="Chart viewer">
+  <div class="lb">
+    <img id="lb-img" alt="">
+    <div>
+      <div class="tag" id="lb-tag"></div>
+      <h4 id="lb-title"></h4>
+      <p id="lb-note"></p>
+      <div class="ctl">
+        <button type="button" id="lb-prev">← Prev</button>
+        <button type="button" id="lb-next">Next →</button>
+        <button type="button" id="lb-close">Close</button>
+      </div>
+      <div class="count" id="lb-count"></div>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const DATA = /*MANIFEST*/null;
+const $ = id => document.getElementById(id);
+const fmt = d => new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const num = v => { const r = Math.round(v * 100) / 100; return r === 0 ? "0.00" : (r > 0 ? "+" : "") + r.toFixed(2); };
+const COLS = [
+  { key: "rank", label: "#", cls: "l" },
+  { key: "move", label: "", sort: false },
+  { key: "team", label: "Team", cls: "l", sort: false },
+  { key: "record", label: "Rec", sort: false },
+  { key: "ats", label: "ATS", sort: false, title: "Record against the closing spread" },
+  { key: "net", label: "Net", heat: true, title: "Net EPA per play" },
+  { key: "off", label: "Off", heat: true, rank: "off_rank", title: "Offense EPA per play" },
+  { key: "def", label: "Def", heat: true, rank: "def_rank", low: true, title: "Defense EPA per play allowed (lower is better)" },
+  { key: "pass", label: "Pass", heat: true, title: "Offense EPA per dropback" },
+  { key: "rush", label: "Rush", heat: true, title: "Offense EPA per run" },
+  { key: "succ", label: "Succ %", heat: true, pct: true, title: "Offensive success rate" },
+  { key: "last3", label: "Last 3", heat: true, title: "Net EPA per play over the last three weeks" },
+];
+let rkSort = { key: "rank", dir: 1 };
+let rkAll = false;
+const weeks = DATA.weeks;
+let current = weeks[weeks.length - 1];
+let filter = "All";
+let visible = [];
+let idx = 0;
+
+function readHash() {
+  const m = location.hash.match(/^#week(\d+)$/);
+  if (m) { const w = weeks.find(x => x.week === +m[1]); if (w) current = w; }
+}
+
+function render() {
+  $("headline").innerHTML = `Week ${current.week} <span>in charts</span>`;
+  $("meta").innerHTML = `<span><b>${current.games}</b> games</span><span>${fmt(current.first)} – ${fmt(current.last)}</span><span><b>${current.charts.length}</b> charts</span>`;
+  $("weeks").innerHTML = weeks.map(w =>
+    `<button type="button" data-week="${w.week}" aria-pressed="${w === current}">Wk ${w.week}</button>`).join("");
+
+  const film = $("film");
+  const v = current.video;
+  if (v) {
+    film.hidden = false;
+    film.innerHTML = `<div class="sec-head"><h2>Film room</h2></div>
+      <div class="feature">
+        <video src="${v.src}" poster="${v.poster}" muted loop playsinline autoplay controls preload="metadata"></video>
+        <div>
+          <div class="tag">Game of the week · win probability replay</div>
+          <h3>${esc(v.title)}</h3>
+          <p>${esc(v.text)}</p>
+          <ul class="drive">${v.plays.map(p => `
+            <li><span class="clk">${esc(p.clock)}</span><span>${esc(p.text)}</span><span class="sw">${esc(p.team)} +${p.swing}</span></li>`).join("")}
+          </ul>
+        </div>
+      </div>`;
+  } else {
+    film.hidden = true;
+    film.innerHTML = "";
+  }
+  renderRankings();
+
+  const tags = ["All", ...new Set(current.charts.map(c => c.tag))];
+  if (!tags.includes(filter)) filter = "All";
+  $("filters").innerHTML = tags.map(t => `<button type="button" data-tag="${t}" aria-pressed="${t === filter}">${t}</button>`).join("");
+
+  visible = current.charts.filter(c => filter === "All" || c.tag === filter);
+  $("grid").innerHTML = visible.map((c, i) => `
+    <button type="button" class="tile" data-i="${i}" aria-label="Open ${c.title}">
+      <div class="img"><img src="${c.src}" alt="${c.title}: ${c.note}" loading="lazy" width="1080" height="1350"></div>
+      <span class="tag">${c.tag}</span>
+      <h4>${c.title}</h4>
+      <p>${c.note}</p>
+    </button>`).join("");
+}
+
+function heat(z) {
+  const a = Math.round(Math.min(Math.abs(z) / 2.5, 1) * 62);
+  return `background: color-mix(in srgb, var(${z > 0 ? "--good" : "--bad"}) ${a}%, var(--surface))`;
+}
+
+function renderRankings() {
+  $("rk-week").textContent = `Season to date · through week ${current.week}`;
+  const rows = [...current.rankings].sort((a, b) => {
+    const k = rkSort.key;
+    return (a[k] - b[k]) * rkSort.dir;
+  });
+  const shown = rkAll ? rows : rows.slice(0, 12);
+  $("rk").innerHTML = `<thead><tr>${COLS.map(c => {
+    const sorted = rkSort.key === c.key ? ` aria-sort="${rkSort.dir === 1 ? "ascending" : "descending"}"` : "";
+    const inner = c.sort === false ? c.label : `<button type="button" data-key="${c.key}" title="${c.title || ""}">${c.label}</button>`;
+    return `<th class="${c.cls || ""}"${sorted}>${inner}</th>`;
+  }).join("")}</tr></thead><tbody>${shown.map(r => `<tr>
+    <td class="pos">${r.rank}</td>
+    <td class="mv ${r.move > 0 ? "up" : ""}">${r.move ? (r.move > 0 ? "▲" : "▼") + Math.abs(r.move) : ""}</td>
+    <td class="team l">${r.team}</td>
+    <td class="rec">${r.record}</td>
+    <td class="rec">${r.ats}</td>
+    ${COLS.filter(c => c.heat).map(c => `<td class="num"><span class="cell" style="${heat(r.heat[c.key])}">${c.pct ? r[c.key].toFixed(1) : num(r[c.key])}${c.rank ? `<small>${r[c.rank]}</small>` : ""}</span></td>`).join("")}
+  </tr>`).join("")}</tbody>`;
+  $("rk-more").textContent = rkAll ? "Show top 12" : "Show all 32";
+}
+
+function open(i) {
+  idx = (i + visible.length) % visible.length;
+  const c = visible[idx];
+  $("lb-img").src = c.src;
+  $("lb-img").alt = c.title;
+  $("lb-tag").textContent = `Week ${current.week} · ${c.tag}`;
+  $("lb-title").textContent = c.title;
+  $("lb-note").textContent = c.note;
+  $("lb-count").textContent = `${idx + 1} of ${visible.length}`;
+  if (!$("lightbox").open) $("lightbox").showModal();
+}
+
+$("weeks").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  current = weeks.find(w => w.week === +b.dataset.week);
+  try { history.replaceState(null, "", "#week" + current.week); } catch (_) {}
+  render();
+});
+$("rk").addEventListener("click", e => {
+  const b = e.target.closest("button[data-key]"); if (!b) return;
+  const k = b.dataset.key;
+  const best = COLS.find(c => c.key === k);
+  if (rkSort.key === k) rkSort.dir *= -1;
+  else rkSort = { key: k, dir: k === "rank" || (best && best.low) ? 1 : -1 };
+  renderRankings();
+});
+$("rk-more").addEventListener("click", () => { rkAll = !rkAll; renderRankings(); });
+$("filters").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  filter = b.dataset.tag; render();
+});
+$("grid").addEventListener("click", e => {
+  const t = e.target.closest(".tile"); if (t) open(+t.dataset.i);
+});
+$("lb-prev").onclick = () => open(idx - 1);
+$("lb-next").onclick = () => open(idx + 1);
+$("lb-close").onclick = () => $("lightbox").close();
+$("lightbox").addEventListener("click", e => { if (e.target === $("lightbox")) $("lightbox").close(); });
+document.addEventListener("keydown", e => {
+  if (!$("lightbox").open) return;
+  if (e.key === "ArrowLeft") open(idx - 1);
+  if (e.key === "ArrowRight") open(idx + 1);
+});
+window.addEventListener("hashchange", () => { readHash(); render(); });
+
+readHash();
+render();
+</script>
